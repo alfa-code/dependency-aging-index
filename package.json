@@ -1,20 +1,27 @@
 {
-  "name": "@alfa-code/dependency-aging-index",
-  "version": "0.0.11",
-  "description": "Dependency aging index",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "npm publish --access public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/alfa-code/dependency-aging-index.git"
-  },
-  "author": "hydrock@yandex.ru",
-  "license": "GNU GENERAL PUBLIC LICENSE",
-  "bugs": {
-    "url": "https://github.com/alfa-code/dependency-aging-index/issues"
-  },
-  "homepage": "https://github.com/alfa-code/dependency-aging-index#readme"
+    "name": "@alfa-code/dependency-aging-index",
+    "version": "0.0.11",
+    "description": "Dependency aging index",
+    "main": "index.js",
+    "bin": {
+        "dai": "./cli.js"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "deploy": "npm publish --access public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/alfa-code/dependency-aging-index.git"
+    },
+    "author": "hydrock@yandex.ru",
+    "license": "GNU GENERAL PUBLIC LICENSE",
+    "bugs": {
+        "url": "https://github.com/alfa-code/dependency-aging-index/issues"
+    },
+    "homepage": "https://github.com/alfa-code/dependency-aging-index#readme",
+    "dependencies": {
+        "axios": "^0.21.1",
+        "inquirer": "^8.0.0"
+    }
 }
