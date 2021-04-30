@@ -22,6 +22,9 @@
     "homepage": "https://github.com/alfa-code/dependency-aging-index#readme",
     "dependencies": {
         "axios": "^0.21.1",
-        "inquirer": "^8.0.0"
+        "inquirer": "^8.0.0",
+        "lodash": "1.x",
+        "npm-api": "^1.0.1",
+        "semver": "^7.3.5"
     }
 }

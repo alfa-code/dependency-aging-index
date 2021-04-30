@@ -9,6 +9,55 @@
 
 var inquirer = require('inquirer');
 var axios = require('axios');
+// var NpmApi = require('npm-api');
+
+// const { exec } = require("child_process");
+
+// const defaultRegistry = 'https://registry.npmjs.org/';
+
+// let npm = new NpmApi();
+
+// var repo = npm.repo('axios');
+
+const semver = require('semver');
+
+const report = {
+    libraresCount: 0,
+    colorCount: {
+        major: 0,
+        premajor: 0,
+        minor: 0,
+        preminor: 0,
+        patch: 0,
+        prepatch: 0,
+        prerelease: 0,
+        null: 0
+    },
+    verbose: []
+}
+
+// exec("npm view axios versions --json", (error, stdout, stderr) => {
+//     if (error) {
+//         console.log(`error: ${error.message}`);
+//         return;
+//     }
+//     if (stderr) {
+//         console.log(`stderr: ${stderr}`);
+//         return;
+//     }
+//     console.log(`stdout: ${stdout}`);
+// });
+
+// npm view axios versions --json
+
+// console.log('repo', repo)
+
+// repo.package()
+//   .then(function(pkg) {
+//     console.log(pkg);
+//   }, function(err) {
+//     console.error(err);
+//   });
 
 inquirer
   .prompt([
@@ -35,6 +84,10 @@ inquirer
     });
 
     console.log('data', data);
+
+    const { dependencies } = data;
+
+    console.log('dependencies', dependencies);
   })
   .catch(error => {
     console.log(error)
@@ -44,4 +97,6 @@ inquirer
     } else {
       // Something else went wrong
     }
-  });
+});
+
+// console.log(semver.coerce('^1.2.3'))
