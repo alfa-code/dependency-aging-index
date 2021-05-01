@@ -3,10 +3,15 @@
 
 // const [,, ...args] = process.argv;
 
+// TODO: доработать опции из package.json
+
+// TODO: доработать разные языки
+
 const fs = require("fs");
 
 var inquirer = require('inquirer');
 var axios = require('axios');
+const chalk = require('chalk');
 
 const { exec } = require("child_process");
 
@@ -65,22 +70,54 @@ function calculateAndSetAgingScore(report) {
 async function localPath() {
     let package = fs.readFileSync(`${process.cwd()}/package.json`, "utf8");
     let packageObj = JSON.parse(package);
-    const { dependencies } = packageObj;
+    const { dependencies = {}, devDependencies = {} } = packageObj;
     console.log('dependencies', dependencies);
-    await checkLibrares(dependencies);
+    console.log('devDependencies', devDependencies);
+    await checkLibrares({ ...dependencies, ...devDependencies });
 }
 
 async function urlPath() {
-    const { data } = await axios({
-        method: 'get',
-        url: 'https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/package.json'
+    const link = await new Promise((resolve, reject) => {
+        inquirer.prompt([
+            {
+                type: "string",
+                name: "link",
+                message: "Предоставьте ссылку на package.json (RAW файл. Например https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/package.json)"
+            },
+            // TODO: докрутить basic аутентификацию
+        ]).then(async (answers) => {
+            console.log("answers", answers);
+            resolve(answers['link']);
+        }).catch(error => {
+            console.log(error)
+            if (error.isTtyError) {
+                reject(null);
+            } else {
+                reject(null);
+            }
+        });
     });
 
-    const { dependencies } = data;
+    if (link) {
+        try {
+            const responce = await axios({
+                method: 'get',
+                url: link
+            });
+    
+            const { data } = responce;
+            const { dependencies = {}, devDependencies = {} } = data;
+        
+            console.log('dependencies', dependencies);
+            console.log('devDependencies', devDependencies);
 
-    console.log('dependencies', dependencies);
-
-    await checkLibrares(dependencies);
+            await checkLibrares({ ...dependencies, ...devDependencies });
+        } catch (err) {
+            console.log('Не удалось получить или распалсить package.json!', err);
+        }
+    } else {
+        console.log('Ссылка некорректна!');
+    }
 }
 
 async function getLibraryVersions(libName) {
@@ -108,41 +145,58 @@ async function checkLibrares(dependencies) {
     for (const libName in dependencies) {
         if (Object.hasOwnProperty.call(dependencies, libName)) {
             const version = dependencies[libName];
-            const currentVersion = semver.coerce(version).raw;
-            console.log(`${libName} currentVersion: `, currentVersion);
+            const currentVersionObj = semver.coerce(version);
+            if (currentVersionObj && currentVersionObj.raw) {
+                // console.log('currentVersionObj', currentVersionObj);
+                const currentVersion = currentVersionObj.raw;
+                // console.log(`${libName} currentVersion: `, currentVersion);
 
-            const lastVersion = await getLibraryVersions(libName);
+                const lastVersion = await getLibraryVersions(libName);
 
-            console.log(`${libName} lastVersion:`, lastVersion);
+                console.log(`${libName} lastVersion:`, lastVersion);
 
-            const versionsDiff = semver.diff(currentVersion, lastVersion);
-            console.log(`${libName} current vs latest diff: `, versionsDiff);
+                const versionsDiff = semver.diff(currentVersion, lastVersion);
+                console.log(`${libName} current vs latest diff: `, versionsDiff);
 
-            report.libChecksCount += 1;
-            report.verbose.push({
-                libName,
-                currentVersion,
-                lastVersion,
-                versionsDiff: versionsDiff === null ? "noDiff" : versionsDiff
-            });
+                report.libChecksCount += 1;
+                report.verbose.push({
+                    libName,
+                    currentVersion,
+                    lastVersion,
+                    versionsDiff: versionsDiff === null ? "noDiff" : versionsDiff
+                });
 
-            if (versionsDiff === null) {
-                report.counter.noDiff += 1;
+                if (versionsDiff === null) {
+                    report.counter.noDiff += 1;
+                } else {
+                    report.counter[versionsDiff] += 1;
+                }
             } else {
-                report.counter[versionsDiff] += 1;
+                // TODO: сделать учет проваленных зависимостей.
             }
         }
     }
 
     const score = calculateAndSetAgingScore(report);
 
-    console.log('Итоговый отчет: ', report.counter);
+    console.log('Итоговый отчет: ', {
+        "Количество корневых зависимостей": report.libChecksCount,
+        "Отчет": report.counter
+    });
 
-    console.log('Итоговая оценка: ', score);
+    console.log('\n Итоговая оценка устаревания зависимостей: ', score);
+
+    if (score > 5000) {
+        console.log(chalk.white.bgRed.bold('\n Ваши зависимости сильно устарели! Нужно срочно обновлять!'));
+    } else if (score > 0 && score < 5000) {
+        console.log(chalk.underline.white.bgYellow.bold('\n Некоторые зависимости устарели. Пора приступить к обновлению!'));
+    } else if (score === 0) {
+        console.log(chalk.underline.white.bgGreen.bold('\n Абсолютно все зависимости обновлены! Вы и ваша команда лучшие!'));
+    }
 }
 
-inquirer
-    .prompt([
+function main() {
+    inquirer.prompt([
         {
             type: "list",
             name: "selectPath",
@@ -158,21 +212,8 @@ inquirer
                 },
             ]
         },
-        // {
-        //     type: "string",
-        //     name: "link",
-        //     message: "Предоставьте ссылку на package.json (RAW файл. Например https://raw.githubusercontent.com/repoName/main/package.json)"
-        // },
-        // {
-        //     type: "list",
-        //     name: "isPublic",
-        //     message: "Это публичный репозиторий?",
-        //     choices: ["Да", "Нет"]
-        // }
     ])
     .then(async (answers) => {
-        // console.log("answers", answers);
-
         switch (answers.selectPath) {
             case 0: {
                 await localPath();
@@ -183,19 +224,27 @@ inquirer
                 break;
             }
             default: {
-                console.log('wtf');
+                console.log('Вы не выбрали ни один из ответов.');
                 break;
             }
         }
-
+    
         
     })
     .catch(error => {
         console.log(error)
         if (error.isTtyError) {
             // Prompt couldn't be rendered in the current environment
-
+    
         } else {
             // Something else went wrong
         }
     });
+}
+
+try {
+    main();
+} catch (err) {
+    console.error("Возникла ошибка. Подробнее: ", err);
+}
+
