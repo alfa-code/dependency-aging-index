@@ -1,5 +1,7 @@
 # DAI - dependency-aging-index
 
+[![npm version](https://badge.fury.io/js/%40alfa-code%2Fdependency-aging-index.svg)](https://badge.fury.io/js/%40alfa-code%2Fdependency-aging-index)
+
 <p align="left">
 	<img alt="madge" src="https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/die.png" width="100">
 </p>
