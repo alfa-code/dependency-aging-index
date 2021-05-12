@@ -1,4 +1,6 @@
-# dependency-aging-index
+# DAI - dependency-aging-index
+
+## Установка
 
 Порядок разработки библиотеки:
 
