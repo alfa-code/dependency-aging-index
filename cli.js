@@ -81,7 +81,7 @@ async function urlPath() {
             {
                 type: "string",
                 name: "link",
-                message: "Предоставьте ссылку на package.json (RAW файл. Например https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/package.json)"
+                message: "Provide a link to the package.json (RAW file. For example https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/package.json)"
             },
             // TODO: докрутить basic аутентификацию
         ]).then(async (answers) => {
@@ -112,10 +112,10 @@ async function urlPath() {
 
             await checkLibrares({ ...dependencies, ...devDependencies });
         } catch (err) {
-            console.log('Не удалось получить или распалсить package.json!', err);
+            console.log('Couldn\'t get or parse package.json!', err);
         }
     } else {
-        console.log('Ссылка некорректна!');
+        console.log('The link is incorrect!');
     }
 }
 
@@ -141,40 +141,76 @@ async function getLibraryVersions(libName) {
 }
 
 async function checkLibrares(dependencies) {
+    var start = process.hrtime();
+
+    var elapsed_time = function(note){
+        var precision = 3; // 3 decimal places
+        var elapsed = process.hrtime(start)[1] / 1000000; // divide by a million to get nano to milli
+        console.log(process.hrtime(start)[0] + " s, " + elapsed.toFixed(precision) + " ms - " + note); // print message + time
+        start = process.hrtime(); // reset the timer
+        
+        // var end = process.hrtime();
+
+        // var elapsed = end[1] - start[1];
+
+        // console.log('start:', start);
+        // console.log('end:', end);
+        // console.log('elapsed:', elapsed);
+    }
+
+    const promises = [];
+
     for (const libName in dependencies) {
         if (Object.hasOwnProperty.call(dependencies, libName)) {
-            const version = dependencies[libName];
-            const currentVersionObj = semver.coerce(version);
-            if (currentVersionObj && currentVersionObj.raw) {
-                // console.log('currentVersionObj', currentVersionObj);
-                const currentVersion = currentVersionObj.raw;
-                // console.log(`${libName} currentVersion: `, currentVersion);
+            promises.push(getCurrentAndLatestVerionPromise(dependencies, libName));
 
-                const lastVersion = await getLibraryVersions(libName);
+            function getCurrentAndLatestVerionPromise(dependencies, libName) {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const version = dependencies[libName];
+                        const currentVersionObj = semver.coerce(version);
+                        if (currentVersionObj && currentVersionObj.raw) {
+                            const currentVersion = currentVersionObj.raw;
+                            console.log('fetch info from ' + libName);
+                            const lastVersion = await getLibraryVersions(libName);
 
-                console.log(`${libName} lastVersion:`, lastVersion);
-
-                const versionsDiff = semver.diff(currentVersion, lastVersion);
-                console.log(`${libName} current vs latest diff: `, versionsDiff);
-
-                report.libChecksCount += 1;
-                report.verbose.push({
-                    libName,
-                    currentVersion,
-                    lastVersion,
-                    versionsDiff: versionsDiff === null ? "noDiff" : versionsDiff
-                });
-
-                if (versionsDiff === null) {
-                    report.counter.noDiff += 1;
-                } else {
-                    report.counter[versionsDiff] += 1;
-                }
-            } else {
-                // TODO: сделать учет проваленных зависимостей.
+                            resolve({ libName, currentVersion, lastVersion });
+                        } else {
+                            // TODO: сделать учет проваленных зависимостей.
+                        }
+                    } catch (e) {
+                        reject();
+                    }
+                })
             }
         }
     }
+
+    console.log('Calculate the diff...');
+    await Promise.all(promises).then((values) => {
+        values.forEach(({libName, currentVersion, lastVersion}) => {
+            console.log(`${libName} lastVersion:`, lastVersion);
+
+            const versionsDiff = semver.diff(currentVersion, lastVersion);
+            console.log(`${libName} current vs latest diff: `, versionsDiff);
+
+            report.libChecksCount += 1;
+            report.verbose.push({
+                libName,
+                currentVersion,
+                lastVersion,
+                versionsDiff: versionsDiff === null ? "noDiff" : versionsDiff
+            });
+
+            if (versionsDiff === null) {
+                report.counter.noDiff += 1;
+            } else {
+                report.counter[versionsDiff] += 1;
+            }
+        });
+    }).catch((e) => {
+        console.log('e', e);
+    });
 
     const score = calculateAndSetAgingScore(report);
 
@@ -185,14 +221,19 @@ async function checkLibrares(dependencies) {
 
     console.log('\n Final assessment of dependency deprecation: ', score);
 
+    elapsed_time('Time spent comparing all libraries.');
+
     if (score > 5000) {
         console.log(chalk.white.bgRed.bold('\n Your dependencies are very outdated! We need to update it urgently!'));
+        console.log('process exit code: 1');
         process.exit(1);
     } else if (score > 0 && score < 5000) {
         console.log(chalk.underline.white.bgYellow.bold('\n Some dependencies are deprecated. It\'s time to start updating!'));
+        console.log('process exit code: 0');
         process.exit(0);
     } else if (score === 0) {
         console.log(chalk.underline.white.bgGreen.bold('\n Absolutely all dependencies are updated! You and your team are the best!'));
+        console.log('process exit code: 0');
         process.exit(0);
     }
 }
@@ -202,14 +243,14 @@ function main() {
         {
             type: "list",
             name: "selectPath",
-            message: "Вы хотите прочитать package.json локально в текущей директории или указать прямую ссылку на package.json?",
+            message: "Read the package.json locally in the current directory or specify a direct link to package.json?",
             choices: [
                 {
-                    name: "Найти package.json в текущей директории",
+                    name: "Find package.json in the current directory",
                     value: 0,
                 },
                 {
-                    name: "Указать ссылку на package.json",
+                    name: "Specify a link to package.json",
                     value: 1,
                 },
             ]
@@ -226,7 +267,7 @@ function main() {
                 break;
             }
             default: {
-                console.log('Вы не выбрали ни один из ответов.');
+                console.log('You didn\'t choose any of the answers.');
                 break;
             }
         }
@@ -247,6 +288,6 @@ function main() {
 try {
     main();
 } catch (err) {
-    console.error("Возникла ошибка. Подробнее: ", err);
+    console.error("An error occurred. More detailed: ", err);
 }
 
