@@ -56,7 +56,6 @@ function calculateAndSetAgingScore(report) {
                     agingScore += (value * 10);
                     break;
                 }
-                case 'patch':
                 case 'prerelease': {
                     agingScore += 0;
                     break;
@@ -179,19 +178,22 @@ async function checkLibrares(dependencies) {
 
     const score = calculateAndSetAgingScore(report);
 
-    console.log('Итоговый отчет: ', {
-        "Количество корневых зависимостей": report.libChecksCount,
-        "Отчет": report.counter
+    console.log('Final report: ', {
+        "Number of root dependencies": report.libChecksCount,
+        "Report": report.counter
     });
 
-    console.log('\n Итоговая оценка устаревания зависимостей: ', score);
+    console.log('\n Final assessment of dependency deprecation: ', score);
 
     if (score > 5000) {
-        console.log(chalk.white.bgRed.bold('\n Ваши зависимости сильно устарели! Нужно срочно обновлять!'));
+        console.log(chalk.white.bgRed.bold('\n Your dependencies are very outdated! We need to update it urgently!'));
+        process.exit(1);
     } else if (score > 0 && score < 5000) {
-        console.log(chalk.underline.white.bgYellow.bold('\n Некоторые зависимости устарели. Пора приступить к обновлению!'));
+        console.log(chalk.underline.white.bgYellow.bold('\n Some dependencies are deprecated. It\'s time to start updating!'));
+        process.exit(0);
     } else if (score === 0) {
-        console.log(chalk.underline.white.bgGreen.bold('\n Абсолютно все зависимости обновлены! Вы и ваша команда лучшие!'));
+        console.log(chalk.underline.white.bgGreen.bold('\n Absolutely all dependencies are updated! You and your team are the best!'));
+        process.exit(0);
     }
 }
 
