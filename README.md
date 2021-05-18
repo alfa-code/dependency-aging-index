@@ -20,7 +20,7 @@ npm install -g @alfa-code/dependency-aging-index
 ```
 
 ```js
-yarn -g @alfa-code/dependency-aging-index
+yarn global add @alfa-code/dependency-aging-index
 ```
 
 ## Usage
