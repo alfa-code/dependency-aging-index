@@ -25,6 +25,57 @@ yarn global add @alfa-code/dependency-aging-index
 
 ## Usage
 
+### Usage as a module
+
+You can use the library as a module. Import the library into your project.
+
+```js
+const dai = require('./index');
+```
+
+The function takes two arguments:
+
+- pathToPackageJSON (fyle system path or url)
+- options (options object)
+
+The options may contain:
+{
+  **pathType**: 'fs' | 'url' // type of content // default 'fs'
+  **maxIndex**: number // max value of dependency aging index // default 5000
+  **errorCodeReturn**: boolean // If the value is set to true, then if the report exceeds the maximum dai value, the program will return code 1 (failure) after completion (can be useful for CI/CD) // default is false
+  **exceptions**: array of strings // list of exceptions libraries (libraries that don't need to be considered in the report)
+}
+
+Then call the library with the necessary parameters. Examples:
+
+```js
+// call without options
+dai();
+
+// call with type and absolute path
+dai('/Documents/projectName/', {
+  pathType: 'fs'
+});
+
+// call with type and relative path
+dai('./', {
+  pathType: 'fs'
+});
+
+// call with type and relative path with package.json string
+dai('./package.json', {
+  pathType: 'fs'
+});
+
+
+// call as url
+dai('https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/package.json', {
+  pathType: 'url'
+});
+```
+
+### Usage as a CLI util
+
 After the global installation, the utility will be available from the terminal using the `dai` command. Run the dai command and follow the instructions.
 
 After the analysis, you will get a report like:
