@@ -67,24 +67,22 @@ function calculateAndSetAgingScore(report) {
  * @param {String} libName 
  * @returns {Promise}
  */
-async function getLibraryVersions(libName) {
-    return new Promise((resolve, reject) => {
-        exec(`npm view ${libName} versions --json`, (error, stdout, stderr) => {
-            if (error) {
-                console.log(`error: ${error.message}`);
-                reject(error);
-            }
-            if (stderr) {
-                console.log(`stderr: ${stderr}`);
-                reject(stderr);
-            }
+async function getLibraryVersions(libName, registry) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const url = registry + libName;
+            const response = await axios({
+                method: 'get',
+                url: url
+            });
+            const versions = Object.keys(response.data.time).splice(2);
 
-            const versionsList = JSON.parse(stdout);
-
-            const lastVersion = versionsList.slice(-1)[0];
+            const lastVersion = versions.slice(-1)[0];
 
             resolve(lastVersion);
-        });
+        } catch(e) {
+            reject(e);
+        }
     });
 }
 
@@ -94,15 +92,15 @@ async function getLibraryVersions(libName) {
  * @param {String} libName
  * @returns {Promise}
  */
-function getCurrentAndLatestVerionPromise(dependencies, libName) {
+function getCurrentAndLatestVerionPromise(dependencies, libName, registry) {
     return new Promise(async (resolve, reject) => {
         try {
             const version = dependencies[libName];
             const currentVersionObj = semver.coerce(version);
             if (currentVersionObj && currentVersionObj.raw) {
                 const currentVersion = currentVersionObj.raw;
-                console.log('Get info by ' + libName);
-                const lastVersion = await getLibraryVersions(libName);
+                console.log('Get info by' + libName);
+                const lastVersion = await getLibraryVersions(libName, registry);
 
                 resolve({ libName, currentVersion, lastVersion });
             } else {
@@ -118,7 +116,7 @@ function getCurrentAndLatestVerionPromise(dependencies, libName) {
  * The function gets information about libraries, compares them, and outputs a report. Returns the error code from the program if necessary.
  * @param {Object} dependencies 
  */
-async function checkLibrares(dependencies, maxIndex, errorCodeReturn) {
+async function checkLibrares(dependencies, maxIndex, errorCodeReturn, registry) {
     // Counting the time spent
     var start = process.hrtime();
     var elapsed_time = function(note){
@@ -132,14 +130,14 @@ async function checkLibrares(dependencies, maxIndex, errorCodeReturn) {
 
     for (const libName in dependencies) {
         if (Object.hasOwnProperty.call(dependencies, libName)) {
-            promises.push(getCurrentAndLatestVerionPromise(dependencies, libName));
+            promises.push(getCurrentAndLatestVerionPromise(dependencies, libName, registry));
         }
     }
 
     console.log('Calculate the diff...');
     await Promise.all(promises).then((values) => {
         values.forEach(({libName, currentVersion, lastVersion}) => {
-            console.log(`${libName} lastVersion:`, lastVersion);
+            // console.log(`${libName} lastVersion:`, lastVersion);
 
             const versionsDiff = semver.diff(currentVersion, lastVersion);
             console.log(`${libName} current vs latest diff: `, versionsDiff);
@@ -227,7 +225,8 @@ async function dai(pathToPackageJSON, options) {
         pathType: 'fs', // 'fs' - file system, 'url' - link to file to the internet
         maxIndex: 5000,
         errorCodeReturn: false,
-        exceptions: []
+        exceptions: [],
+        registry: 'https://registry.npmjs.org/',
     }
 
     if (options === undefined) {
@@ -240,7 +239,13 @@ async function dai(pathToPackageJSON, options) {
         }
     }
 
-    const { pathType, maxIndex, errorCodeReturn, exceptions } = options;
+    const {
+        pathType,
+        maxIndex,
+        errorCodeReturn,
+        exceptions,
+        registry,
+    } = options;
 
     switch (pathType) {
         case 'fs': {
@@ -294,7 +299,11 @@ async function dai(pathToPackageJSON, options) {
         console.log('Filtered Dependencies: ', filteredDependencies)
     }
 
-    await checkLibrares(filteredDependencies || dependencies, maxIndex, errorCodeReturn);
+    await checkLibrares(filteredDependencies || dependencies, maxIndex, errorCodeReturn, registry);
 }
 
 module.exports = dai;
+
+//
+// curl https://registry.npmjs.org/@alfa-code/dependency-aging-index | jq .time
+// curl http://binary.moscow.alfaintra.net/artifactory/api/npm/npm/@alfa-code/dependency-aging-index | jq .time

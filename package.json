@@ -21,7 +21,7 @@
     "homepage": "https://github.com/alfa-code/dependency-aging-index#readme",
     "dependencies": {
         "axios": "^0.21.1",
-        "inquirer": "^8.0.0",
+        "inquirer": "^8.1.0",
         "semver": "^7.3.5",
         "valid-url": "^1.0.9"
     }
