@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/%40alfa-code%2Fdependency-aging-index.svg)](https://badge.fury.io/js/%40alfa-code%2Fdependency-aging-index)
 
 <p align="left">
-	<img alt="madge" src="https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/die.png" width="100">
+	<img alt="madge" src="https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/src/assets/die.png" width="100">
 </p>
 
 If you do not update the libraries for a long time, and use the old versions, the project, sooner or later, will begin to die. No one needs it. This library provides a silly way to evaluate the importance of updating dependencies.
@@ -39,12 +39,19 @@ The function takes two arguments:
 - options (options object)
 
 The options may contain:
+```
 {
-  **pathType**: 'fs' | 'url' // type of content // default 'fs'
-  **maxIndex**: number // max value of dependency aging index // default 5000
-  **errorCodeReturn**: boolean // If the value is set to true, then if the report exceeds the maximum dai value, the program will return code 1 (failure) after completion (can be useful for CI/CD) // default is false
-  **exceptions**: array of strings // list of exceptions libraries (libraries that don't need to be considered in the report)
+  pathType: 'fs' | 'url'; // type of content // default 'fs'
+
+  maxIndex: number; // max value of dependency aging index // default 5000
+
+  errorCodeReturn: boolean; // If the value is set to true, then if the report exceeds the maximum dai value, the program will return code 1 (failure) after completion (can be useful for CI/CD) // default is false
+  
+  exceptions: array of strings; // list of exceptions libraries (libraries that don't need to be considered in the report)
+
+  customBadMessage: string;
 }
+```
 
 Then call the library with the necessary parameters. Examples:
 
