@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/%40alfa-code%2Fdependency-aging-index.svg)](https://badge.fury.io/js/%40alfa-code%2Fdependency-aging-index)
 
 <p align="left">
-	<img alt="madge" src="https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/src/assets/die.png" width="100">
+	<img alt="madge" src="https://raw.githubusercontent.com/alfa-code/dependency-aging-index/main/src/die.png" width="100">
 </p>
 
 If you do not update the libraries for a long time, and use the old versions, the project, sooner or later, will begin to die. No one needs it. This library provides a silly way to evaluate the importance of updating dependencies.
