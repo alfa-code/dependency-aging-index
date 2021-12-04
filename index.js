@@ -115,7 +115,7 @@ function getCurrentAndLatestVerionPromise(dependencies, libName, registry) {
  * The function gets information about libraries, compares them, and outputs a report. Returns the error code from the program if necessary.
  * @param {Object} dependencies 
  */
-async function checkLibrares(dependencies, maxIndex, errorCodeReturn, registry) {
+async function checkLibrares(dependencies, maxIndex, errorCodeReturn, registry, customBadMessage) {
     // Counting the time spent
     var start = process.hrtime();
     var elapsed_time = function(note){
@@ -330,7 +330,7 @@ async function dai(pathToPackageJSON, options) {
         console.log('Filtered Dependencies: ', filteredDependencies)
     }
 
-    await checkLibrares(filteredDependencies || dependencies, maxIndex, errorCodeReturn, registry);
+    await checkLibrares(filteredDependencies || dependencies, maxIndex, errorCodeReturn, registry, customBadMessage);
 }
 
 module.exports = dai;
