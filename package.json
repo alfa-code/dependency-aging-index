@@ -3,7 +3,8 @@
     "version": "1.0.4",
     "description": "Dependency aging index",
     "bin": {
-        "dai": "./cli.js"
+        "dai": "./cli.js",
+        "patch": "npm version patch"
     },
     "scripts": {
         "test": "exit 0",
