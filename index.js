@@ -136,9 +136,11 @@ async function checkLibrares(dependencies, maxIndex, errorCodeReturn, registry, 
     console.log('Calculate the diff...');
     await Promise.all(promises).then((values) => {
         values.forEach(({libName, currentVersion, lastVersion}) => {
-            // console.log(`${libName} lastVersion:`, lastVersion);
+
+            console.log(`${libName} lastVersion:`, lastVersion);
 
             const versionsDiff = semver.diff(currentVersion, lastVersion);
+
             console.log(`${libName} current vs latest diff: `, versionsDiff);
 
             report.libChecksCount += 1;
@@ -156,7 +158,7 @@ async function checkLibrares(dependencies, maxIndex, errorCodeReturn, registry, 
             }
         });
     }).catch((e) => {
-        console.log('e', e);
+        console.log('Error:', e);
     });
 
     const score = calculateAndSetAgingScore(report);
