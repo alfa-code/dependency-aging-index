@@ -137,6 +137,7 @@ async function checkLibrares(dependencies, maxIndex, errorCodeReturn, registry, 
     await Promise.all(promises).then((values) => {
         values.forEach(({libName, currentVersion, lastVersion}) => {
 
+            console.log(`${libName} currentVersion:`, currentVersion);
             console.log(`${libName} lastVersion:`, lastVersion);
 
             const versionsDiff = semver.diff(currentVersion, lastVersion);
