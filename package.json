@@ -1,6 +1,6 @@
 {
     "name": "@alfa-code/dependency-aging-index",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Dependency aging index",
     "bin": {
         "dai": "./cli.js",
